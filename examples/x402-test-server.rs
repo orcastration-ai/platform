@@ -18,12 +18,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let price = USDC::base_sepolia().parse("0.01")?;
     let price_tag = V1Eip155Exact::price_tag(pay_to, price);
 
-    let app = Router::new()
-        .route("/health", get(health))
-        .route(
-            "/paid",
-            get(paid_resource).layer(x402.with_price_tag(price_tag)),
-        );
+    let app = Router::new().route("/health", get(health)).route(
+        "/paid",
+        get(paid_resource).layer(x402.with_price_tag(price_tag)),
+    );
 
     let port: u16 = std::env::var("PORT")
         .ok()
