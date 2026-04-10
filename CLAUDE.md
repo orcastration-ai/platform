@@ -7,6 +7,7 @@ Shared Rust crate providing cross-cutting platform primitives consumed by all Or
 - **`events`** — EventBridge publish (bus name + detail type + payload)
 - **`dynamo`** — Generic DynamoDB operations (table name passed by caller)
 - **`postgres`** — Postgres connection pool (placeholder — services own their queries)
+- **`x402`** — x402 payment middleware for Axum services
 
 ## Commands
 

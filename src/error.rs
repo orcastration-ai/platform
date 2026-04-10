@@ -10,6 +10,9 @@ pub enum PlatformError {
 
     #[error("{0}")]
     Internal(String),
+
+    #[error("x402: {0}")]
+    X402(String),
 }
 
 impl From<aws_sdk_dynamodb::Error> for PlatformError {
