@@ -105,3 +105,88 @@ pub async fn query(
 
     Ok(result.items.unwrap_or_default())
 }
+
+/// Delete an item by its key.
+pub async fn delete_item(
+    client: &Client,
+    table_name: &str,
+    key: HashMap<String, AttributeValue>,
+) -> Result<(), PlatformError> {
+    client
+        .delete_item()
+        .table_name(table_name)
+        .set_key(Some(key))
+        .send()
+        .await
+        .map_err(|e| PlatformError::DynamoDb(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Update an item using an update expression.
+///
+/// - `key`: Primary key of the item to update
+/// - `update_expression`: UpdateExpression (e.g. "SET #n = :n, updated_at = :now")
+/// - `names`: ExpressionAttributeNames
+/// - `values`: ExpressionAttributeValues
+pub async fn update_item(
+    client: &Client,
+    table_name: &str,
+    key: HashMap<String, AttributeValue>,
+    update_expression: &str,
+    names: Option<HashMap<String, String>>,
+    values: HashMap<String, AttributeValue>,
+) -> Result<Option<HashMap<String, AttributeValue>>, PlatformError> {
+    let mut builder = client
+        .update_item()
+        .table_name(table_name)
+        .set_key(Some(key))
+        .update_expression(update_expression)
+        .set_expression_attribute_values(Some(values))
+        .return_values(aws_sdk_dynamodb::types::ReturnValue::AllNew);
+
+    if let Some(n) = names {
+        builder = builder.set_expression_attribute_names(Some(n));
+    }
+
+    let result = builder
+        .send()
+        .await
+        .map_err(|e| PlatformError::DynamoDb(e.to_string()))?;
+
+    Ok(result.attributes)
+}
+
+/// Scan a table with an optional filter expression.
+///
+/// - `filter_expression`: Optional FilterExpression
+/// - `names`: ExpressionAttributeNames
+/// - `values`: ExpressionAttributeValues
+pub async fn scan(
+    client: &Client,
+    table_name: &str,
+    filter_expression: Option<&str>,
+    names: Option<HashMap<String, String>>,
+    values: Option<HashMap<String, AttributeValue>>,
+) -> Result<Vec<HashMap<String, AttributeValue>>, PlatformError> {
+    let mut builder = client.scan().table_name(table_name);
+
+    if let Some(filter) = filter_expression {
+        builder = builder.filter_expression(filter);
+    }
+
+    if let Some(n) = names {
+        builder = builder.set_expression_attribute_names(Some(n));
+    }
+
+    if let Some(v) = values {
+        builder = builder.set_expression_attribute_values(Some(v));
+    }
+
+    let result = builder
+        .send()
+        .await
+        .map_err(|e| PlatformError::DynamoDb(e.to_string()))?;
+
+    Ok(result.items.unwrap_or_default())
+}
