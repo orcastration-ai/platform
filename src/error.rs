@@ -11,6 +11,9 @@ pub enum PlatformError {
     #[error("{0}")]
     Internal(String),
 
+    #[error("S3: {0}")]
+    S3(String),
+
     #[error("x402: {0}")]
     X402(String),
 }
